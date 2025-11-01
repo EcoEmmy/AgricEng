@@ -1,0 +1,199 @@
+====================================================================
+AGRICULTURAL & ENVIRONMENTAL ENGINEERING PORTAL
+DEPLOYMENT GUIDE FOR RENDER.COM
+====================================================================
+
+IMPORTANT: This application is fully configured for PostgreSQL and 
+Render hosting. Follow these steps carefully.
+
+====================================================================
+STEP 1: PREPARE YOUR DATABASE
+====================================================================
+
+Option A: Create Database on Render
+1. Go to https://dashboard.render.com
+2. Click "New +" → "PostgreSQL"
+3. Settings:
+   - Name: aee-database
+   - Database: aee_portal
+   - User: aee_user
+   - Region: Choose nearest to your users
+   - Plan: Free or Starter
+4. Click "Create Database"
+5. SAVE the "External Database URL" shown - you'll need this!
+
+Option B: Use Existing PostgreSQL Database
+- Just have your DATABASE_URL ready in this format:
+  postgresql://username:password@host:port/database_name
+
+====================================================================
+STEP 2: UPLOAD YOUR CODE TO GITHUB
+====================================================================
+
+1. Create a new repository on GitHub
+2. Upload all files from this folder to the repository
+3. Make sure these files are included:
+   ✓ main.py
+   ✓ app.py
+   ✓ requirements.txt
+   ✓ Procfile
+   ✓ render.yaml
+   ✓ static/ folder
+   ✓ templates/ folder
+
+====================================================================
+STEP 3: CREATE WEB SERVICE ON RENDER
+====================================================================
+
+1. Go to https://dashboard.render.com
+2. Click "New +" → "Web Service"
+3. Connect your GitHub account if not already connected
+4. Select your repository
+5. Fill in the settings:
+   
+   Name: aee-portal
+   Environment: Python 3
+   Region: Choose nearest to your users
+   Branch: main (or master)
+   
+   Build Command: pip install -r requirements.txt
+   Start Command: gunicorn main:app --bind 0.0.0.0:$PORT --workers 2
+
+====================================================================
+STEP 4: ADD ENVIRONMENT VARIABLES
+====================================================================
+
+In the "Environment" section, add these variables:
+
+1. DATABASE_URL
+   Value: [Paste the External Database URL from Step 1]
+
+2. SESSION_SECRET
+   Value: [Click "Generate" button] or create a random string
+
+3. MAIL_SERVER (Optional - for email notifications)
+   Value: smtp.gmail.com
+
+4. MAIL_PORT (Optional)
+   Value: 587
+
+5. MAIL_USERNAME (Optional)
+   Value: your-email@gmail.com
+
+6. MAIL_PASSWORD (Optional)
+   Value: your-app-password
+
+7. MAIL_DEFAULT_SENDER (Optional)
+   Value: your-email@gmail.com
+
+====================================================================
+STEP 5: DEPLOY
+====================================================================
+
+1. Click "Create Web Service"
+2. Wait 3-5 minutes for deployment to complete
+3. You'll see "Deploy succeeded" when ready
+4. Your app URL will be: https://aee-portal.onrender.com
+
+====================================================================
+STEP 6: FIRST LOGIN
+====================================================================
+
+1. Go to: https://your-app-url.onrender.com/admin/login
+
+2. Default admin credentials:
+   Username: admin
+   Password: aeeAdmin
+
+3. IMMEDIATELY change the password after first login!
+
+====================================================================
+STEP 7: TEST THE APPLICATION
+====================================================================
+
+1. Visit the homepage
+2. Try student registration
+3. Test payment submission
+4. Login as admin and approve a payment
+5. Upload some test results
+6. Login as student and verify results are visible
+
+====================================================================
+IMPORTANT NOTES
+====================================================================
+
+✓ The database tables are created automatically on first run
+✓ Default admin account and sample courses are seeded automatically
+✓ Payment must be approved before students can see results
+✓ Receipt files are stored in the uploads/receipts folder
+✓ The app runs on port assigned by Render ($PORT variable)
+
+✗ Don't forget to set DATABASE_URL - the app won't work without it!
+✗ Don't share your SESSION_SECRET publicly
+✗ Don't use default admin password in production
+
+====================================================================
+TROUBLESHOOTING
+====================================================================
+
+Problem: "Database connection failed"
+Solution: Verify your DATABASE_URL is correct and database is running
+
+Problem: "Module not found"
+Solution: Check that all files were uploaded to GitHub properly
+
+Problem: App shows "Application Error"
+Solution: Check logs in Render dashboard → select your service → Logs
+
+Problem: Can't login as admin
+Solution: Verify database initialized properly - check logs for ✅ messages
+
+====================================================================
+UPDATING THE APPLICATION
+====================================================================
+
+To update your deployed app:
+1. Make changes to your local files
+2. Push changes to GitHub
+3. Render will automatically redeploy (if auto-deploy is enabled)
+   OR click "Manual Deploy" → "Deploy latest commit"
+
+====================================================================
+SUPPORT
+====================================================================
+
+For technical issues with this application:
+- Check the logs in Render dashboard
+- Verify all environment variables are set correctly
+- Ensure DATABASE_URL points to an accessible PostgreSQL database
+
+For Render platform issues:
+- Visit: https://render.com/docs
+- Support: https://render.com/support
+
+====================================================================
+Good luck with your deployment!
+====================================================================
+
+====================================================================
+SECURITY BEST PRACTICES
+====================================================================
+
+CRITICAL: Initial Admin Password
+1. Before deploying to production, add this environment variable:
+   INITIAL_ADMIN_PASSWORD: your-strong-password-here
+
+2. If you deploy without setting this variable:
+   - Default password is: ChangeMeOnFirstLogin2024!
+   - Login immediately and change it
+   - Go to admin dashboard and update your password
+
+3. Never use default passwords in production!
+
+Password Requirements:
+- Minimum 8 characters
+- Mix of uppercase, lowercase, numbers, symbols
+- Don't reuse passwords
+- Change regularly
+
+====================================================================
