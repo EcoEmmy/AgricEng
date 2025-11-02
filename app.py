@@ -96,16 +96,23 @@ def get_db_connection():
 
 
 
+
+
 def create_tables():
-    """Create all necessary database tables if they don't already exist."""
+    """Drop and recreate all tables for a clean reset."""
     conn = get_db_connection()
     try:
         with conn.cursor() as cur:
-            app.logger.info("🛠️ Checking and creating tables (if missing)...")
-
-            # Students table
+            app.logger.warning("⚠️ Dropping old tables...")
             cur.execute("""
-                CREATE TABLE IF NOT EXISTS students (
+                DROP TABLE IF EXISTS results, payments, contacts, courses, sessions, admins, students CASCADE;
+            """)
+            conn.commit()
+
+            app.logger.info("🛠️ Creating fresh tables...")
+
+            cur.execute("""
+                CREATE TABLE students (
                     id SERIAL PRIMARY KEY,
                     name VARCHAR(200) NOT NULL,
                     matric_number VARCHAR(20) UNIQUE NOT NULL,
@@ -116,12 +123,11 @@ def create_tables():
                     password_hash VARCHAR(255) NOT NULL,
                     is_active BOOLEAN DEFAULT TRUE,
                     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-                )
+                );
             """)
 
-            # Admins table
             cur.execute("""
-                CREATE TABLE IF NOT EXISTS admins (
+                CREATE TABLE admins (
                     id SERIAL PRIMARY KEY,
                     name VARCHAR(200) NOT NULL,
                     username VARCHAR(50) UNIQUE NOT NULL,
@@ -129,22 +135,20 @@ def create_tables():
                     role VARCHAR(20) NOT NULL,
                     is_active BOOLEAN DEFAULT TRUE,
                     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-                )
+                );
             """)
 
-            # Sessions table
             cur.execute("""
-                CREATE TABLE IF NOT EXISTS sessions (
+                CREATE TABLE sessions (
                     id SERIAL PRIMARY KEY,
                     session_name VARCHAR(20) UNIQUE NOT NULL,
                     is_current BOOLEAN DEFAULT FALSE,
                     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-                )
+                );
             """)
 
-            # Courses table
             cur.execute("""
-                CREATE TABLE IF NOT EXISTS courses (
+                CREATE TABLE courses (
                     id SERIAL PRIMARY KEY,
                     course_code VARCHAR(20) UNIQUE NOT NULL,
                     course_title VARCHAR(200) NOT NULL,
@@ -152,12 +156,11 @@ def create_tables():
                     level INTEGER NOT NULL,
                     semester INTEGER NOT NULL,
                     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-                )
+                );
             """)
 
-            # Results table
             cur.execute("""
-                CREATE TABLE IF NOT EXISTS results (
+                CREATE TABLE results (
                     id SERIAL PRIMARY KEY,
                     student_id INTEGER NOT NULL REFERENCES students(id) ON DELETE CASCADE,
                     course_code VARCHAR(20) NOT NULL,
@@ -170,24 +173,22 @@ def create_tables():
                     session_id INTEGER REFERENCES sessions(id),
                     uploaded_by INTEGER REFERENCES admins(id),
                     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-                )
+                );
             """)
 
-            # Contacts table
             cur.execute("""
-                CREATE TABLE IF NOT EXISTS contacts (
+                CREATE TABLE contacts (
                     id SERIAL PRIMARY KEY,
                     name VARCHAR(100) NOT NULL,
                     email VARCHAR(120) NOT NULL,
                     subject VARCHAR(200) NOT NULL,
                     message TEXT NOT NULL,
                     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-                )
+                );
             """)
 
-            # Payments table
             cur.execute("""
-                CREATE TABLE IF NOT EXISTS payments (
+                CREATE TABLE payments (
                     id SERIAL PRIMARY KEY,
                     full_name VARCHAR(100) NOT NULL,
                     matric_number VARCHAR(20) NOT NULL,
@@ -202,23 +203,23 @@ def create_tables():
                     status VARCHAR(20) DEFAULT 'pending',
                     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-                )
+                );
             """)
 
-            # Indexes
-            cur.execute("CREATE INDEX IF NOT EXISTS idx_students_matric ON students(matric_number)")
-            cur.execute("CREATE INDEX IF NOT EXISTS idx_admins_username ON admins(username)")
-            cur.execute("CREATE INDEX IF NOT EXISTS idx_payments_matric ON payments(matric_number)")
+            cur.execute("CREATE INDEX idx_students_matric ON students(matric_number);")
+            cur.execute("CREATE INDEX idx_admins_username ON admins(username);")
+            cur.execute("CREATE INDEX idx_payments_matric ON payments(matric_number);")
 
             conn.commit()
-            app.logger.info("✅ Database check complete — all tables ready!")
-
+            app.logger.info("✅ Tables recreated successfully")
     except Exception as e:
         conn.rollback()
-        app.logger.error(f"❌ Error creating tables: {e}")
+        app.logger.error(f"❌ Error recreating tables: {e}")
         raise
     finally:
         conn.close()
+
+
 
 
 
