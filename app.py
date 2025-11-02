@@ -93,18 +93,30 @@ def get_db_connection():
         app.logger.error(f"Database connection failed: {e}")
         app.logger.error(f"Please verify your DATABASE_URL is correct and the database is accessible")
         raise
-
-# =========================================================
-# --- TABLE CREATION FUNCTIONS ---
-# =========================================================
 def create_tables():
-    """Create all necessary database tables using pure psycopg."""
+    """Drop and recreate all necessary database tables using pure psycopg."""
     conn = get_db_connection()
     try:
         with conn.cursor() as cur:
+            app.logger.warning("⚠️  Dropping existing tables (if any)...")
+            cur.execute("""
+                DROP TABLE IF EXISTS results CASCADE;
+                DROP TABLE IF EXISTS payments CASCADE;
+                DROP TABLE IF EXISTS contacts CASCADE;
+                DROP TABLE IF EXISTS courses CASCADE;
+                DROP TABLE IF EXISTS sessions CASCADE;
+                DROP TABLE IF EXISTS admins CASCADE;
+                DROP TABLE IF EXISTS students CASCADE;
+            """)
+            conn.commit()
+            app.logger.warning("✅ All old tables dropped successfully")
+
+            # Now recreate everything fresh
+            app.logger.info("🛠️  Creating tables...")
+
             # Students table
             cur.execute("""
-                CREATE TABLE IF NOT EXISTS students (
+                CREATE TABLE students (
                     id SERIAL PRIMARY KEY,
                     name VARCHAR(200) NOT NULL,
                     matric_number VARCHAR(20) UNIQUE NOT NULL,
@@ -117,10 +129,10 @@ def create_tables():
                     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
                 )
             """)
-            
+
             # Admins table
             cur.execute("""
-                CREATE TABLE IF NOT EXISTS admins (
+                CREATE TABLE admins (
                     id SERIAL PRIMARY KEY,
                     name VARCHAR(200) NOT NULL,
                     username VARCHAR(50) UNIQUE NOT NULL,
@@ -130,20 +142,20 @@ def create_tables():
                     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
                 )
             """)
-            
+
             # Sessions table
             cur.execute("""
-                CREATE TABLE IF NOT EXISTS sessions (
+                CREATE TABLE sessions (
                     id SERIAL PRIMARY KEY,
                     session_name VARCHAR(20) UNIQUE NOT NULL,
                     is_current BOOLEAN DEFAULT FALSE,
                     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
                 )
             """)
-            
+
             # Courses table
             cur.execute("""
-                CREATE TABLE IF NOT EXISTS courses (
+                CREATE TABLE courses (
                     id SERIAL PRIMARY KEY,
                     course_code VARCHAR(20) UNIQUE NOT NULL,
                     course_title VARCHAR(200) NOT NULL,
@@ -153,10 +165,10 @@ def create_tables():
                     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
                 )
             """)
-            
+
             # Results table
             cur.execute("""
-                CREATE TABLE IF NOT EXISTS results (
+                CREATE TABLE results (
                     id SERIAL PRIMARY KEY,
                     student_id INTEGER NOT NULL REFERENCES students(id) ON DELETE CASCADE,
                     course_code VARCHAR(20) NOT NULL,
@@ -171,10 +183,10 @@ def create_tables():
                     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
                 )
             """)
-            
+
             # Contacts table
             cur.execute("""
-                CREATE TABLE IF NOT EXISTS contacts (
+                CREATE TABLE contacts (
                     id SERIAL PRIMARY KEY,
                     name VARCHAR(100) NOT NULL,
                     email VARCHAR(120) NOT NULL,
@@ -183,10 +195,10 @@ def create_tables():
                     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
                 )
             """)
-            
+
             # Payments table
             cur.execute("""
-                CREATE TABLE IF NOT EXISTS payments (
+                CREATE TABLE payments (
                     id SERIAL PRIMARY KEY,
                     full_name VARCHAR(100) NOT NULL,
                     matric_number VARCHAR(20) NOT NULL,
@@ -203,20 +215,22 @@ def create_tables():
                     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
                 )
             """)
-            
-            # Create indexes
-            cur.execute("CREATE INDEX IF NOT EXISTS idx_students_matric ON students(matric_number)")
-            cur.execute("CREATE INDEX IF NOT EXISTS idx_admins_username ON admins(username)")
-            cur.execute("CREATE INDEX IF NOT EXISTS idx_payments_matric ON payments(matric_number)")
-            
+
+            # Indexes
+            cur.execute("CREATE INDEX idx_students_matric ON students(matric_number)")
+            cur.execute("CREATE INDEX idx_admins_username ON admins(username)")
+            cur.execute("CREATE INDEX idx_payments_matric ON payments(matric_number)")
+
             conn.commit()
-            app.logger.info("✅ All tables created successfully")
+            app.logger.info("✅ All tables recreated successfully")
+
     except Exception as e:
         conn.rollback()
-        app.logger.error(f"Error creating tables: {e}")
+        app.logger.error(f"❌ Error creating tables: {e}")
         raise
     finally:
         conn.close()
+
 
 def seed_database():
     """Seed the database with default data."""
