@@ -285,30 +285,6 @@ def seed_database():
         conn.close()
 
 
-def reset_database():
-    """Dangerous but useful for initial setup — drops and recreates all tables."""
-    conn = get_db_connection()
-    try:
-        with conn.cursor() as cur:
-            app.logger.warning("⚠️ Dropping all existing tables...")
-            cur.execute("""
-                DROP TABLE IF EXISTS results CASCADE;
-                DROP TABLE IF EXISTS payments CASCADE;
-                DROP TABLE IF EXISTS contacts CASCADE;
-                DROP TABLE IF EXISTS courses CASCADE;
-                DROP TABLE IF EXISTS sessions CASCADE;
-                DROP TABLE IF EXISTS admins CASCADE;
-                DROP TABLE IF EXISTS students CASCADE;
-            """)
-            conn.commit()
-            app.logger.warning("✅ All tables dropped successfully")
-    except Exception as e:
-        conn.rollback()
-        app.logger.error(f"❌ Error resetting database: {e}")
-    finally:
-        conn.close()
-
-
 # =========================================================
 # --- AUTHENTICATION HELPERS ---
 # =========================================================
