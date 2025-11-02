@@ -43,16 +43,16 @@
                         <small class="text-white-50">{{ session.admin_username }}</small>
                     </div>
                     <nav class="nav nav-pills flex-column">
-                        <a class="nav-link active" href="{{ url_for('admin.dashboard') }}">
+                        <a class="nav-link active" href="{{ url_for('admin_dashboard') }}">
                             <i class="fas fa-tachometer-alt me-2"></i> Dashboard
                         </a>
-                        <a class="nav-link" href="{{ url_for('admin.contacts') }}">
+                        <a class="nav-link" href="{{ url_for('admin_contacts') }}">
                             <i class="fas fa-envelope me-2"></i> Contacts
                         </a>
-                        <a class="nav-link" href="{{ url_for('admin.payments') }}">
+                        <a class="nav-link" href="{{ url_for('admin_payments') }}">
                             <i class="fas fa-credit-card me-2"></i> Payments
                         </a>
-                        <a class="nav-link" href="{{ url_for('admin.stats') }}">
+                        <a class="nav-link" href="{{ url_for('admin_stats') }}">
                             <i class="fas fa-chart-bar me-2"></i> Statistics
                         </a>
                         <hr class="text-white-50">
@@ -158,7 +158,7 @@
                             <div class="card">
                                 <div class="card-header d-flex justify-content-between align-items-center">
                                     <h5>Recent Contacts</h5>
-                                    <a href="{{ url_for('admin.contacts') }}" class="btn btn-sm btn-outline-primary">View All</a>
+                                    <a href="{{ url_for('admin_contacts') }}" class="btn btn-sm btn-outline-primary">View All</a>
                                 </div>
                                 <div class="card-body">
                                     {% if recent_contacts %}
@@ -181,7 +181,7 @@
                             <div class="card">
                                 <div class="card-header d-flex justify-content-between align-items-center">
                                     <h5>Recent Payments</h5>
-                                    <a href="{{ url_for('admin.payments') }}" class="btn btn-sm btn-outline-primary">View All</a>
+                                    <a href="{{ url_for('admin_payments') }}" class="btn btn-sm btn-outline-primary">View All</a>
                                 </div>
                                 <div class="card-body">
                                     {% if recent_payments %}
